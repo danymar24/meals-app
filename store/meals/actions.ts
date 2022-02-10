@@ -1,0 +1,10 @@
+export const TOGGLE_FAVORITE = 'TOGGLE_FAVORITE';
+export const SET_FILTERS = 'SET_FILTERS';
+
+export const toggleFavorite = (id: string) => {
+  return {type: TOGGLE_FAVORITE, id};
+}
+
+export const setFilters = (filters: any) => {
+  return { type: SET_FILTERS, filters };
+}
