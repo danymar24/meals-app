@@ -1,26 +1,19 @@
-import { MEALS } from "../../constants/dummy-data";
 import { Meal } from "../../models/meal";
-import { SET_FILTERS, TOGGLE_FAVORITE } from "./actions";
+import { SET_FILTERED_MEALS, SET_FILTERS, SET_MEALS } from "./actions";
 import { mealsState } from "./model";
 
 const initialState: mealsState = {
-  meals: MEALS,
-  filteredMeals: MEALS,
-  favoriteMeals: []
+  meals: [],
+  filteredMeals: []
 }
 
 const mealsReducer = (state: any = initialState, action: any) => {
   switch (action.type) {
-    case TOGGLE_FAVORITE:
-      const existingIndex = state.favoriteMeals.findIndex((meal: Meal) => meal?.id === action.id);
-      if (existingIndex >= 0) {
-        const updatedFavMeals = [...state.favoriteMeals];
-        updatedFavMeals.splice(existingIndex, 1);
-        return { ...state, favoriteMeals: updatedFavMeals };
-      } else {
-        const meal = state.meals.find((meal: Meal) => meal.id === action.id);
-        return { ...state, favoriteMeals: state.favoriteMeals.concat(meal)}
-      }
+    case SET_MEALS:
+      return { ...state, meals: action.meals};
+      break;
+    case SET_FILTERED_MEALS:
+      return { ...state, filteredMeals: action.meals};
       break;
     case SET_FILTERS:
       const appliedFilters = action.filters;

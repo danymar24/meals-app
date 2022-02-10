@@ -1,13 +1,11 @@
+import { useQuery } from "@apollo/client";
 import { NavigationProp, RouteProp } from "@react-navigation/native";
 import { FunctionComponent, useLayoutEffect } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
-import { useSelector } from "react-redux";
 import MealItem from "../components/MealItem";
-import { CATEGORIES } from "../constants/dummy-data";
-import Category from "../models/category";
+import { GET_FAVORITE_MEALS } from "../graphql/queries/GetFavoriteMeals";
 import { Meal } from "../models/meal";
-import { mealsState } from "../store/meals/model";
 
 interface FavoritesScreenProps {
   route: RouteProp<any>;
@@ -15,14 +13,22 @@ interface FavoritesScreenProps {
 }
  
 const FavoritesScreen: FunctionComponent<FavoritesScreenProps> = ({route, navigation}: {route: RouteProp<any>, navigation: NavigationProp<any>}) => {
-  const meals = useSelector(({meals}: {meals: mealsState}) => meals.favoriteMeals);
+  const { loading, error, data } = useQuery(GET_FAVORITE_MEALS);
+  const favoriteMeals = data && data.favoriteMeals;
+
   useLayoutEffect(() => {
     navigation.setOptions({
       title: 'Favorites',
     });
   }, [navigation]);
 
-  if (meals.length === 0 || !meals) {
+  if(loading) {
+    return (
+      <ActivityIndicator style={styles.screen} size="large" />
+    )
+  }
+
+  if (favoriteMeals.length === 0 || !favoriteMeals) {
     return (
       <View style={styles.screen}>
         <Text>No favorite meals found. Start adding some!</Text>
@@ -59,7 +65,7 @@ const FavoritesScreen: FunctionComponent<FavoritesScreenProps> = ({route, naviga
 
   return (
     <View style={styles.screen}>
-      <FlatList data={meals} renderItem={renderMealItem}/>
+      <FlatList data={favoriteMeals} renderItem={renderMealItem}/>
     </View>
   );
 }

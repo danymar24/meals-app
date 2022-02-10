@@ -1,16 +1,14 @@
-import { NavigationContainer } from "@react-navigation/native";
-import { FunctionComponent, useLayoutEffect, useState } from "react";
-import { Button, FlatList, Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { FunctionComponent, useEffect, useLayoutEffect, useState } from "react";
+import { FlatList, StyleSheet, View } from "react-native";
 import CategoryGridTile from "../components/CategoryGridTile";
 import { CATEGORIES } from "../constants/dummy-data";
-import Colors from "../constants/Colors";
-import Category from "../models/category";
 import { HeaderButtons, Item } from "react-navigation-header-buttons";
 import FiltersScreen from "./FiltersScreen";
 import HeaderButton from "../components/HeaderButton";
-import { useSelector } from "react-redux";
-import { mealsState } from "../store/meals/model";
-import { Meal } from "../models/meal";
+import { useDispatch } from "react-redux";
+import { useQuery } from "@apollo/client";
+import { GET_MEALS } from "../graphql/queries/GetMeals";
+import { setFilteredMeals, setMeals } from "../store/meals/actions";
 
 interface CategoriesScreenProps {
   navigation: any,
@@ -18,6 +16,9 @@ interface CategoriesScreenProps {
 
 const CategoriesScreen: FunctionComponent<CategoriesScreenProps> = ({navigation}: CategoriesScreenProps) => {
   const [modalVisibility, setModalVisibility] = useState(false);
+  const { loading: loadingMeals, error: errorMeals, data: mealsResponse } = useQuery(GET_MEALS);
+  const meals = mealsResponse && mealsResponse.meals;
+  const dispatch = useDispatch();
 
   const openFilterModalHandler = () => {
     setModalVisibility(!modalVisibility);
@@ -43,6 +44,11 @@ const CategoriesScreen: FunctionComponent<CategoriesScreenProps> = ({navigation}
   const renderGridItem = (itemData: any) => {
     return <CategoryGridTile onSelect={onSelectHandler} category={itemData.item}/>
   }
+
+  useEffect(() => {
+    dispatch(setMeals(meals));
+    dispatch(setFilteredMeals(meals));
+  }, [dispatch, meals])
 
   return (
     <View>

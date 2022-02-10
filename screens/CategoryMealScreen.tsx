@@ -16,23 +16,20 @@ interface CategoryMealScreenProps {
 const CategoryMealScreen: FunctionComponent<CategoryMealScreenProps> = ({navigation, route}: CategoryMealScreenProps) => {
   const categoryId = route.params?.id;
   const selectedCategory = CATEGORIES.find((category: Category) => category.id === categoryId);
-
-  const meals = useSelector((state: any) => state.meals.filteredMeals);
-
   const availableMeals = useSelector(({meals}: {meals: mealsState}) => meals.filteredMeals);
-  const displayedMeals = availableMeals.filter((meal: Meal) => meal.categoryIds.indexOf(categoryId) >= 0);
+  const displayedMeals = availableMeals && availableMeals.filter((meal: Meal) => meal.categoryIds.indexOf(categoryId) >= 0);
 
   useLayoutEffect(() => {
     navigation.setOptions({
       title: selectedCategory?.title,
     });
-  }, [navigation]);
+  }, [navigation, selectedCategory]);
 
   const onSelectMealHandler = (id: string) => {
     navigation.navigate('Meal', { id });
   }
 
-  if(displayedMeals.length === 0) {
+  if(displayedMeals && displayedMeals.length === 0) {
     return <View style={styles.screen}>
       <Text>No meals found, please check the filters</Text>
     </View>

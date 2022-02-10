@@ -1,13 +1,13 @@
 import { NavigationProp, RouteProp } from "@react-navigation/native";
-import { FunctionComponent, useCallback, useEffect, useLayoutEffect, useState } from "react";
-import { Button, Image, ScrollView, StyleSheet, Text, View } from "react-native";
+import { FunctionComponent, useCallback, useLayoutEffect } from "react";
+import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, View } from "react-native";
 import { HeaderButtons, Item } from "react-navigation-header-buttons";
-import { MEALS } from "../constants/dummy-data";
 import { Meal } from "../models/meal";
 import HeaderButton from '../components/HeaderButton';
-import { useDispatch, useSelector } from "react-redux";
-import { mealsState } from "../store/meals/model";
-import { toggleFavorite } from "../store/meals/actions";
+import { useMutation, useQuery } from "@apollo/client";
+import { GET_MEAL } from "../graphql/queries/GetMeal";
+import { GET_FAVORITE_MEALS } from "../graphql/queries/GetFavoriteMeals";
+import { TOGGLE_FAVORITE } from "../graphql/mutations/ToggleFavorite";
 
 interface MealDetailScreenProps {
   navigation: NavigationProp<any>;
@@ -16,14 +16,24 @@ interface MealDetailScreenProps {
  
 const MealDetailScreen: FunctionComponent<MealDetailScreenProps> = ({navigation, route}: MealDetailScreenProps) => {
   const mealId = route.params?.id;
-  const meals = useSelector(({meals}: {meals: mealsState}) => meals.meals);
-  const selectedMeal = meals.find((meal: Meal) => meal.id === mealId);
-  const favoritedMeal = useSelector(({meals}: {meals: mealsState}) => meals.favoriteMeals.some((meal: Meal) => meal.id === mealId));
-  const dispatch = useDispatch();
+  const { loading: loadingMeal, error: errorMeal, data: mealResponse } = useQuery(GET_MEAL, {
+    variables: {id: mealId}
+  });
+  const { loading: loadingFavorites, error: errorFavorites, data: favoritesResponse } = useQuery(GET_FAVORITE_MEALS);
+  const [toggleFavorite, {loading: toggleFavoriteLoading, error: toggleFavoriteError, data: toggleFavoriteResponse}] = useMutation(TOGGLE_FAVORITE, {
+    variables: {id: mealId},
+    refetchQueries: [
+      GET_FAVORITE_MEALS
+    ]
+  });
+
+  const selectedMeal = mealResponse && mealResponse.meal;
+  const favoriteMeals = favoritesResponse && favoritesResponse.favoriteMeals;
+  const favoritedMeal = favoriteMeals && favoriteMeals.some((meal: Meal) => meal.id === mealId);
 
   const toggleFavoriteHandler = useCallback(() => {
-    dispatch(toggleFavorite(mealId));
-  }, [dispatch, mealId])
+    toggleFavorite();
+  }, [mealId, toggleFavorite]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -45,6 +55,12 @@ const MealDetailScreen: FunctionComponent<MealDetailScreenProps> = ({navigation,
       <Text>{item}</Text>
     </View>
   )
+
+  if(loadingMeal || toggleFavoriteLoading || loadingFavorites) {
+    return (
+      <ActivityIndicator style={styles.screen} size="large" />
+    )
+  }
   
   return (
     <ScrollView>

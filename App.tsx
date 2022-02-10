@@ -7,6 +7,7 @@ import TabsNavigation from './navigation/TabsNavigation';
 import { combineReducers, createStore } from 'redux';
 import {mealsReducer} from './store/meals/reducer';
 import { Provider } from 'react-redux';
+import { ApolloClient, ApolloProvider, InMemoryCache } from '@apollo/client';
 
 const fetchFonts = () => {
   return Font.loadAsync({
@@ -14,6 +15,11 @@ const fetchFonts = () => {
     'open-sans-bold': require('./assets/fonts/OpenSans-Bold.ttf')
   })
 };
+
+const client = new ApolloClient({
+  uri: 'https://us-central1-bbred-b99f1.cloudfunctions.net/graphql',
+  cache: new InMemoryCache()
+});
 
 const rootReducer = combineReducers({
   meals: mealsReducer
@@ -35,13 +41,15 @@ export default function App() {
   }
   
   return (
-    <Provider store={store}>
-      <View style={{flex: 1}}>
-        <NavigationContainer>
-          <TabsNavigation />
-        </NavigationContainer>
-      </View>
-    </Provider>
+    <ApolloProvider client={client}>
+      <Provider store={store}>
+        <View style={{flex: 1}}>
+          <NavigationContainer>
+            <TabsNavigation />
+          </NavigationContainer>
+        </View>
+      </Provider>
+    </ApolloProvider>
   );
 }
 
